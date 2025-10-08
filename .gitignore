@@ -52,9 +52,7 @@ ib_buffer_pool
 ibdata1
 mysql.sock
 undo_*
-
-innodb_redo/
-performance_schema/*.sbi
+mysql_data/
 *.sbi
 
 # MySQL / InnoDB data files
