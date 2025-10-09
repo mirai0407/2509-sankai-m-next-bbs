@@ -1,0 +1,92 @@
+// This is your Prisma schema file
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ここから下にmodelを追加していく
+
+model User {
+  id            String           @id @default(cuid()) @db.Char(25) // MySQLではcuid()が安全
+  email         String           @unique
+  password      String
+  nickname      String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  deletedAt     DateTime?
+  posts         Post[]
+  comments      Comment[]
+  passwordReset PasswordReset[]
+  operationLogs OperationLog[]
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid()) @db.Char(25)
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  usedAt    DateTime?
+  
+  @@index([email])
+}
+
+model Post {
+  id        String    @id @default(cuid()) @db.Char(25)
+  author    User      @relation(fields: [userId], references: [id])
+  userId    String    @db.Char(25)
+  title     String
+  body      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  comments  Comment[]
+}
+
+model Comment {
+  id        String    @id @default(cuid()) @db.Char(25)
+  post      Post      @relation(fields: [postId], references: [id])
+  postId    String    @db.Char(25)
+  author    User      @relation(fields: [userId], references: [id])
+  userId    String    @db.Char(25)
+  body      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([postId])
+  @@index([userId])
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid()) @db.Char(25)
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.Char(25)
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+model OperationLog {
+  id            String   @id @default(cuid()) @db.Char(25)
+  author        User?    @relation(fields: [userId], references: [id])
+  userId        String?  @db.Char(25)
+  operationType String
+  targetTable   String
+  targetId      String?  @db.Char(25)
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+}
